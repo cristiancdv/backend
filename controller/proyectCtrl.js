@@ -203,6 +203,11 @@ const Auth = (req, res) => {
 
     }
 }
+/*PRUEBA*/
+const prueba = (req, res) => {
+    console.log(req);
+    res.status(200).send('desde prueba')
+}
 
-module.exports = { GETAll, GETId, New, Edit, Delete, Auth }
+module.exports = { GETAll, GETId, New, Edit, Delete, Auth, prueba }
 

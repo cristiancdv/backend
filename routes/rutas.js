@@ -17,6 +17,6 @@ router.post(`/:tabla/:id`, upload.single("imagen"), proyectCtrl.Edit)
 //delete
 router.delete(`/:tabla/:id`, proyectCtrl.Delete)
 
-
+router.get(`/prueba`, proyectCtrl.prueba)
 
 module.exports = router
