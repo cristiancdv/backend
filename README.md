@@ -7,4 +7,4 @@ autenticacion de usuarios
 routing
 manejo de respuestas HTTP estandar
 ```
-ser escalable de manera sencilla
+es escalable de manera sencilla
