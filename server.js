@@ -5,18 +5,18 @@ const app = require("./app");
 const { appConfig } = require('./config/config');
 
 
-app.use(cors())
+// app.use(cors())
+console.log('hola');
+
+// app.use('/', require('./routes/rutas'))
 
 
-app.use('/', require('./routes/rutas'))
 
-
-
-app.use(function (req, res, next) {
+/*app.use(function (req, res, next) {
     res.status(404).render('404');
-});
+});*/
 
-app.listen(appConfig.port, () => {
+/*app.listen(appConfig.port, () => {
     console.log(`desde puerto ${appConfig.port}`)
-})
+})*/
 
