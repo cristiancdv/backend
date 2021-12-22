@@ -56,7 +56,7 @@ const New = (req, res) => {
     let tabla = req.params.tabla
     let sql = `INSERT INTO ${tabla} SET ?`
     if (req.file) {
-        const baseUrl = `${appConfig.host}:${appConfig.port}/public`
+        const baseUrl = `${appConfig.host}/public`
         const endImg = req.file.filename
         let imagen = { imagen: `${baseUrl}/${endImg}` } //colocar direccion aqui
         let producto = Object.assign(req.body, imagen)
@@ -90,7 +90,7 @@ const Edit = (req, res) => {
                 } else {
                     res.status(201).send("Producto Actualizado correctamente")
 
-                    const baseUrl = `${appConfig.host}:${appConfig.port}/public`
+                    const baseUrl = `${appConfig.host}/public`
                     const endImg = req.file.filename
                     let imagen = { imagen: `${baseUrl}/${endImg}` } //colocar direccion aqui
                     var producto = Object.assign(req.body, imagen)
