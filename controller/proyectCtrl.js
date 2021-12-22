@@ -29,7 +29,7 @@ const GETAll = (req, res) => {
 }
 //leer elemento segun id
 const GETId = (req, res) => {
-    let id = req.params.id
+    let id = parseInt(req.params.id)
     let tabla = req.params.tabla
     let sql = `SELECT * FROM ${tabla} WHERE id=?`
     db.query(sql, id, (err, data) => {
@@ -77,7 +77,7 @@ const New = (req, res) => {
 const Edit = (req, res) => {
 
     let tabla = req.params.tabla
-    let id = req.params.id
+    let id = parseInt(req.params.id)
     let sql = `UPDATE ${tabla} SET ? WHERE id = ?`
 
 
@@ -122,7 +122,7 @@ const Edit = (req, res) => {
 //Borrar elementos DELETE
 const Delete = (req, res) => {
     let tabla = req.params.tabla
-    id = req.params.id
+    let id = parseInt(req.params.id)
     let sql = `DELETE FROM ${tabla}  WHERE id = ?`
     let sqlConsulta = `SELECT * from ${tabla} WHERE id=?`
 
