@@ -84,17 +84,16 @@ const Edit = (req, res) => {
     if (id) {
         //ejecuta la subida de la nueva imagen
         if (req.file) {
+            const baseUrl = `${appConfig.host}/public`
+            const endImg = req.file.filename
+            let imagen = { imagen: `${baseUrl}/${endImg}` } //colocar direccion aqui
+            var producto = Object.assign(req.body, imagen)
+
             db.query(sql, [producto, id], (err, data) => {
                 if (err != null) {
                     res.status(500).send(err)
                 } else {
                     res.status(201).send("Producto Actualizado correctamente")
-
-                    const baseUrl = `${appConfig.host}/public`
-                    const endImg = req.file.filename
-                    let imagen = { imagen: `${baseUrl}/${endImg}` } //colocar direccion aqui
-                    var producto = Object.assign(req.body, imagen)
-
                     let sqlConsulta = `SELECT * from ${tabla} WHERE id=?`
                     //  elimina la imgen anterior anterior de la carpeta
                     db.query(sqlConsulta, id, (err, data) => {
