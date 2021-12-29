@@ -1,7 +1,7 @@
 const { appConfig } = require('../config/config')
-const fs = require("fs")
 const db = require('../db');
-const bcrypt = require('bcrypt')
+const { upload, edit, erase } = require('../helpers/cloudinary')
+
 
 // listar elementos GET 
 const GETAll = (req, res) => {
@@ -29,7 +29,7 @@ const GETAll = (req, res) => {
 }
 //leer elemento segun id
 const GETId = (req, res) => {
-    let id = parseInt(req.params.id)
+    let id = req.params.id
     let tabla = req.params.tabla
     let sql = `SELECT * FROM ${tabla} WHERE id=?`
     db.query(sql, id, (err, data) => {
@@ -53,23 +53,25 @@ const GETId = (req, res) => {
 //crear elementos POST
 
 const New = (req, res) => {
+
     let tabla = req.params.tabla
+
     let sql = `INSERT INTO ${tabla} SET ?`
     if (req.file) {
-        const baseUrl = `${appConfig.host}/public`
-        const endImg = req.file.filename
-        let imagen = { imagen: `${baseUrl}/${endImg}` } //colocar direccion aqui
-        let producto = Object.assign(req.body, imagen)
-        // console.log(producto);
-        db.query(sql, producto, (err, data) => {
-            if (err != null) {
-                res.status(500).send(err)
-            } else {
-                res.status(201).send("Producto creado correctamente")
-            }
+        upload(req.file).then((fileresult) => {
+
+            let imagen = { imagen: `${fileresult.public_id}` } //colocar direccion aqui
+            let producto = Object.assign(req.body, imagen)
+            // console.log(producto);
+            db.query(sql, producto, (err, data) => {
+                if (err != null) {
+                    res.status(500).send(err)
+                } else {
+                    res.status(201).send("Producto creado correctamente")
+                }
+
+            })
         })
-
-
     }
 }
 
@@ -77,68 +79,78 @@ const New = (req, res) => {
 const Edit = (req, res) => {
 
     let tabla = req.params.tabla
-    let id = parseInt(req.params.id)
+    let id = req.params.id
     let sql = `UPDATE ${tabla} SET ? WHERE id = ?`
-
+    let sqlConsulta = `SELECT * from ${tabla} WHERE id=?`
 
     if (id) {
-        //ejecuta la subida de la nueva imagen
-        if (req.file) {
-            const baseUrl = `${appConfig.host}/public`
-            const endImg = req.file.filename
-            let imagen = { imagen: `${baseUrl}/${endImg}` } //colocar direccion aqui
-            var producto = Object.assign(req.body, imagen)
 
-            db.query(sql, [producto, id], (err, data) => {
-                if (err != null) {
-                    res.status(500).send(err)
-                } else {
-                    res.status(201).send("Producto Actualizado correctamente")
-                    let sqlConsulta = `SELECT * from ${tabla} WHERE id=?`
-                    //  elimina la imgen anterior anterior de la carpeta
-                    db.query(sqlConsulta, id, (err, data) => {
-                        const path = data[0].imagen.replace(/^.*[\\\/]/, '')
-                        fs.existsSync('./storage/image/' + path) && fs.unlinkSync('./storage/image/' + path)
-                    })
-                }
-            })
-        } else {
-            var producto = req.body
-            db.query(sql, [producto, id], (err, data) => {
-                if (err != null) {
-                    res.status(500).send(err)
-                } else {
-                    res.status(201).send("Producto Actualizado correctamente")
-                }
-            })
-        }
+        db.query(sqlConsulta, id, (err, data) => {
+            const path = data[0].imagen
+            if (err != null) {
+                res.status(500).send(err)
+            } else if (path) {
+                //elimina la imagen anterior en todos los casos
+                erase(path).then((result) => {
+                    if (req.file == undefined) {
+                        var producto = req.body
+                        db.query(sql, [producto, id], (err, data) => {
+                            if (err != null) {
+                                res.status(500).send(err)
+                            } else {
+                                res.status(201).send("Producto Actualizado correctamente")
+                            }
+                        })
+                    } else {
+                        //ejecuta la subida de la nueva imagen
+                        upload(req.file).then((fileresult) => {
 
+                            let imagen = { imagen: `${fileresult.public_id}` } //colocar direccion aqui
+                            let producto = Object.assign(req.body, imagen)
+                            // console.log(producto);
+                            db.query(sql, [producto, id], (err, data) => {
+                                if (err != null) {
+                                    res.status(500).send(err)
+                                } else {
+                                    res.status(201).send("Producto actualizado correctamente")
+                                }
 
-
+                            })
+                        })
+                    }
+                })
+            }
+        })
     }
+    else { res.status(500).send('error de id') }
 }
-
 //Borrar elementos DELETE
 const Delete = (req, res) => {
     let tabla = req.params.tabla
-    let id = parseInt(req.params.id)
+    id = req.params.id
     let sql = `DELETE FROM ${tabla}  WHERE id = ?`
     let sqlConsulta = `SELECT * from ${tabla} WHERE id=?`
 
-    //  elimina la imgen anterior anterior de la carpeta
+    //  elimina la imgen  anterior de la carpeta
+    db.query(sqlConsulta, id, (err, data) => {
+        const path = data[0].imagen
 
-    db.query(sql, id, (err, data) => {
-        if (err != null) {
-            res.status(500).send(err)
-        } else {
-            db.query(sqlConsulta, id, (err, data) => {
-                const path = data[0].imagen.replace(/^.*[\\\/]/, '')
-                fs.existsSync('./storage/image/' + path) && fs.unlinkSync('./storage/image/' + path)
-            })
-            res.status(202).send("Producto eliminado correctamente")
-        }
+        erase(path).then((result) => {
+            if (result === 'ok') {
+                db.query(sql, id, (err, data) => {
+                    if (err != null) {
+                        res.status(500).send(err)
+                    } else {
+
+                        res.status(202).send("Producto eliminado correctamente")
+                    }
+                })
+            }
+        })
     })
 }
+
+
 /* USUARIOS*/
 
 //crea o autentica usuario
