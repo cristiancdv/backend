@@ -1,6 +1,7 @@
-const { appConfig } = require('../config/config')
+const fs = require('fs')
 const db = require('../db');
-const { upload, edit, erase } = require('../helpers/cloudinary')
+
+const { upload, erase } = require('../helpers/cloudinary')
 
 
 // listar elementos GET 
@@ -58,6 +59,7 @@ const New = (req, res) => {
 
     let sql = `INSERT INTO ${tabla} SET ?`
     if (req.file) {
+
         upload(req.file).then((fileresult) => {
 
             let imagen = { imagen: `${fileresult.public_id}` } //colocar direccion aqui
@@ -72,6 +74,7 @@ const New = (req, res) => {
 
             })
         })
+        fs.unlink(`./storage/image/${req.file.filename}`, (err) => { if (err) { throw err } })
     }
 }
 
@@ -117,6 +120,7 @@ const Edit = (req, res) => {
 
                             })
                         })
+                        fs.unlink(`./storage/image/${req.file.filename}`, (err) => { if (err) { throw err } })
                     }
                 })
             }
